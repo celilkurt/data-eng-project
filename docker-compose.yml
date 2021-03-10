@@ -1,0 +1,31 @@
+version: '3.9'
+
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "orders:1:1,products:1:1"
+
+  data-producer:
+    build: data-producer
+    volumes:
+      - ./raw-data:/raw-data
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      BATCH_INTERVAL: 100.millisecond
+      BATCH_SIZE: 100
+      ORDERS_SOURCE_PATH: /raw-data/orders.json
+      ORDERS_TOPIC: orders
+      PRODUCTS_SOURCE_PATH: /raw-data/products.json
+      PRODUCTS_TOPIC: products
+
